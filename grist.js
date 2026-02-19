@@ -353,6 +353,10 @@ api = KeywardApi()
 `;
 
 const SETUP_CODE = `
+import sys
+if "/marimo" not in sys.path:
+    sys.path.insert(0, "/marimo")
+
 GRIST_DATA_PATH = "data.json"
 
 def send_grist_actions(actions):
