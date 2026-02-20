@@ -681,7 +681,7 @@ async function syncGristData(records) {
 
   // Write data to pyodide filesystem
   await bridge.sendUpdateFile({
-    path: "/marimo/data.json",
+    path: "data.json",
     contents: JSON.stringify(records),
   });
 
