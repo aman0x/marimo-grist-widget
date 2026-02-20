@@ -21,31 +21,8 @@ HTML_TEMPLATE = r"""
 <marimo-filename hidden>notebook.py</marimo-filename>
 <marimo-wasm hidden=""></marimo-wasm>
 <marimo-version data-version="0.19.0" hidden></marimo-version>
-<style>
-.template-nav {
-    background: #99999922;
-    text-align: center;
-}
-.template-links-container {
-    background: #BBBBBB22;
-    display:flex;
-    flex-direction: column;
-}
-</style>
 </head>
 <body>
-<nav>
-<details class="template-nav">
-<summary>
-Load Templates
-</summary>
-<ul class="template-links-container">
-<li><a href="#grist_marimo_template/default">Default template</a></li>
-<li><a href="#grist_marimo_template/polars">Polars template</a></li>
-<li><a href="#grist_marimo_template/duplicate">Data duplication template</a></li>
-</div>
-</details>
-</nav>
 <div style="position:absolute" id="root"></div><div id="portal"></div>
 </body></html>
 """
