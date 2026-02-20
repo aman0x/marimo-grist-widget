@@ -426,7 +426,6 @@ const NOTEBOOK_BASE = `# /// script
 #     "pandas",
 #     "matplotlib",
 #     "polars",
-#     "keyward @ https://aman0x.github.io/marimo-grist-widget/keyward-0.1.0-py3-none-any.whl",
 # ]
 # ///
 
@@ -648,20 +647,24 @@ async function injectKeywardPackage() {
     return;
   }
 
-  console.log("Installing keyward package via micropip...");
+  console.log("Injecting keyward package into Pyodide filesystem...");
 
-  const keywardWheelUrl = new URL("keyward-0.1.0-py3-none-any.whl", window.location.href).href;
-
-  await bridge.sendRun({
-    cellIds: ["__keyward_install__"],
-    codes: [`
-import micropip
-await micropip.install("${keywardWheelUrl}")
-print("✓ Keyward package installed")
-`],
+  await bridge.sendUpdateFile({
+    path: "/marimo/keyward/__init__.py",
+    contents: KEYWARD_INIT_PY,
   });
 
-  console.log("✓ Keyward package installed successfully");
+  await bridge.sendUpdateFile({
+    path: "/marimo/keyward/table_operations.py",
+    contents: KEYWARD_TABLE_OPS_PY,
+  });
+
+  await bridge.sendUpdateFile({
+    path: "/marimo/keyward/api.py",
+    contents: KEYWARD_API_PY,
+  });
+
+  console.log("✓ Keyward package injected successfully");
 }
 
 // ============================================================================
