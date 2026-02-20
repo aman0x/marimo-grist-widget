@@ -435,8 +435,6 @@ __generated_with = "0.19.0"
 app = marimo.App(width="medium")
 
 with app.setup(hide_code=True):
-    # Don't touch ! This cell will be overwritten each time
-    # the grist data is updated.
     ${SETUP_CODE.split("\n").join("\n    ")}
 `;
 
