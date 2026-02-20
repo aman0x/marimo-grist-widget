@@ -662,7 +662,13 @@ async function injectKeywardPackage() {
     contents: KEYWARD_API_PY,
   });
 
-  console.log("✓ Keyward package injected successfully");
+  // Run SETUP_CODE to add /marimo to sys.path
+  await bridge.sendRun({
+    cellIds: ["setup"],
+    codes: [SETUP_CODE],
+  });
+
+  console.log("✓ Keyward package injected and sys.path updated");
 }
 
 // ============================================================================
