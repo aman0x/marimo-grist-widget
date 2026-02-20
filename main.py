@@ -69,6 +69,7 @@ if __name__ == "__main__":
         f.write(html)
 
     shutil.copyfile("grist.js", out_dir / "grist.js")
+    shutil.copyfile("keyward-0.1.0-py3-none-any.whl", out_dir / "keyward-0.1.0-py3-none-any.whl")
 
     (out_dir / ".nojekyll").touch()
 

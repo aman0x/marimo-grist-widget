@@ -1,0 +1,10 @@
+[project]
+name = "keyward"
+version = "0.1.0"
+description = "Keyward API for Grist integration in Marimo"
+requires-python = ">=3.11"
+dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

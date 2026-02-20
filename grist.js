@@ -612,24 +612,20 @@ async function injectKeywardPackage() {
     return;
   }
 
-  console.log("Injecting keyward package into Pyodide...");
+  console.log("Installing keyward package via micropip...");
 
-  await bridge.sendUpdateFile({
-    path: "/marimo/keyward/__init__.py",
-    contents: KEYWARD_INIT_PY,
+  const wheelUrl = new URL("keyward-0.1.0-py3-none-any.whl", window.location.href).href;
+
+  await bridge.sendRun({
+    cellIds: ["__keyward_install__"],
+    codes: [`
+import micropip
+await micropip.install("${wheelUrl}")
+print("✓ Keyward package installed")
+`],
   });
 
-  await bridge.sendUpdateFile({
-    path: "/marimo/keyward/table_operations.py",
-    contents: KEYWARD_TABLE_OPS_PY,
-  });
-
-  await bridge.sendUpdateFile({
-    path: "/marimo/keyward/api.py",
-    contents: KEYWARD_API_PY,
-  });
-
-  console.log("✓ Keyward package injected successfully");
+  console.log("✓ Keyward package installed successfully");
 }
 
 // ============================================================================
