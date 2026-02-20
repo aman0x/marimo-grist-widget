@@ -2,6 +2,41 @@
 // MARIMO-GRIST WIDGET INTEGRATION
 // ============================================================================
 
+// ============================================================================
+// COMLINK WORKER INTERCEPTION - Expose grist to Pyodide workers
+// ============================================================================
+
+const pendingWorkers = [];
+const OriginalWorker = window.Worker;
+
+class GristWorker extends OriginalWorker {
+  constructor(scriptURL, options) {
+    super(scriptURL, options);
+    if (window.grist && window.Comlink) {
+      exposeGristToWorker(this);
+    } else {
+      pendingWorkers.push(this);
+    }
+  }
+}
+
+window.Worker = GristWorker;
+
+function exposeGristToWorker(worker) {
+  Comlink.expose(
+    {
+      grist: {
+        ...grist,
+        getTable: (tableId) => Comlink.proxy(grist.getTable(tableId)),
+      }
+    },
+    worker
+  );
+  console.log("✓ Grist API exposed to worker via Comlink");
+}
+
+// ============================================================================
+
 const GRIST_OPTION_KEY = "marimo_code";
 
 const KEYWARD_INIT_PY = `from .api import KeywardApi, api
@@ -391,7 +426,8 @@ const NOTEBOOK_BASE = `# /// script
 #     "pandas",
 #     "matplotlib",
 #     "polars",
-#     "keyward @ https://aman0x.github.io/marimo-grist-widget/keyward-0.1.0-py3-none-any.whl",
+#     "grist @ https://aman0x.github.io/marimo-grist-widget/grist-0.1.0-py3-none-any.whl",
+#     "keyward @ https://aman0x.github.io/marimo-grist-widget/keyward-0.6.7-py3-none-any.whl",
 # ]
 # ///
 
@@ -613,20 +649,22 @@ async function injectKeywardPackage() {
     return;
   }
 
-  console.log("Installing keyward package via micropip...");
+  console.log("Installing grist and keyward packages via micropip...");
 
-  const wheelUrl = new URL("keyward-0.1.0-py3-none-any.whl", window.location.href).href;
+  const gristWheelUrl = new URL("grist-0.1.0-py3-none-any.whl", window.location.href).href;
+  const keywardWheelUrl = new URL("keyward-0.6.7-py3-none-any.whl", window.location.href).href;
 
   await bridge.sendRun({
     cellIds: ["__keyward_install__"],
     codes: [`
 import micropip
-await micropip.install("${wheelUrl}")
-print("✓ Keyward package installed")
+await micropip.install("${gristWheelUrl}")
+await micropip.install("${keywardWheelUrl}")
+print("✓ Grist and Keyward packages installed")
 `],
   });
 
-  console.log("✓ Keyward package installed successfully");
+  console.log("✓ Grist and Keyward packages installed successfully");
 }
 
 // ============================================================================
@@ -667,6 +705,12 @@ grist.ready({
     console.warn("options not implemented");
   },
 });
+
+// Expose grist to any workers that were created before grist was ready
+for (const worker of pendingWorkers) {
+  exposeGristToWorker(worker);
+}
+pendingWorkers.length = 0;
 
 // Sync data when table updates
 grist.onRecords(async (records) => {
