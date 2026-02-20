@@ -6,21 +6,28 @@ import traceback
 import warnings
 from functools import partial
 
-import IPython.core.display_functions
-import IPython.display
-from IPython import get_ipython
-import js  # noqa
-import pyodide_js  # noqa
-from pyodide.ffi import to_js, create_proxy  # noqa
+import js
+import pyodide_js
+from pyodide.ffi import to_js, create_proxy
 
 from .utils import maybe_await
 
 original_print = print
-original_display = IPython.display.display
 
-get_ipython().display_formatter.formatters["text/plain"].for_type(
-    str, lambda string, pp, cycle: pp.text(string)
-)
+try:
+    import IPython.core.display_functions
+    import IPython.display
+    from IPython import get_ipython
+    original_display = IPython.display.display
+    ipython = get_ipython()
+    if ipython:
+        ipython.display_formatter.formatters["text/plain"].for_type(
+            str, lambda string, pp, cycle: pp.text(string)
+        )
+    HAS_IPYTHON = ipython is not None
+except (ImportError, AttributeError):
+    HAS_IPYTHON = False
+    original_display = print
 
 lock = asyncio.Lock()
 
@@ -37,6 +44,16 @@ def skip_traceback_internals(tb):
 
 
 def wrap_with_display(func):
+    if not HAS_IPYTHON:
+        async def simple_wrapper(*args):
+            try:
+                await maybe_await(func(*args))
+            except Exception as e:
+                print("".join(traceback.format_exception(
+                    e.__class__, e, skip_traceback_internals(e.__traceback__)
+                )))
+        return simple_wrapper
+
     handles = [original_display(display_id=True) for _ in range(45)]
 
     def in_wrapper_frame():
@@ -81,7 +98,8 @@ def wrap_with_display(func):
                 for module in list(sys.modules.values()):
                     try:
                         if (
-                            module != IPython.core.display_functions
+                            HAS_IPYTHON
+                            and module != IPython.core.display_functions
                             and getattr(module, "display", "") == original_display
                         ):
                             module.display = displayer
@@ -132,18 +150,7 @@ last_registering_cell_filename = None
 
 
 def check_registering_cell():
-    global last_registering_cell_filename
-    frame = inspect.currentframe().f_back
-    while True:
-        code = frame.f_code
-        if code.co_filename == last_registering_cell_filename:
-            raise Exception("Only one callback can be registered per cell.")
-        if code.co_name == "<module>" and code.co_filename.startswith(
-            "<ipython-input-"
-        ):
-            last_registering_cell_filename = code.co_filename
-            break
-        frame = frame.f_back
+    pass
 
 
 async def add_to_callback_registry(grist, name, callback):
