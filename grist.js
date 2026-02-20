@@ -383,18 +383,6 @@ def send_grist_actions(actions):
         label="update grist table",
         on_change=lambda x: ctx.stream.write(kernel_msg)
     )
-
-from keyward import api as keyward
-from keyward import (
-    get_dataframe,
-    add_records,
-    update_record,
-    delete_records,
-    create_table,
-    remove_table,
-    get_actions_button,
-    set_table_name,
-)
 `;
 
 const NOTEBOOK_BASE = `# /// script
@@ -435,15 +423,15 @@ def _(pd):
 
 const DEFAULT_NOTEBOOK = `${NOTEBOOK_BASE}
 @app.cell()
-def _(keyward):
-    df = keyward.get_table()
-    df
+def _():
+    import pandas as pd
+    return (pd,)
 
 
 @app.cell()
-def _(keyward, df):
-    keyward.add_records({"Name": "Test", "Value": 123})
-    keyward.apply_button()
+def _(pd):
+    df = pd.read_json(GRIST_DATA_PATH).set_index("id")
+    df
 `;
 
 const DATA_DUPLICATION_NOTEBOOK = `${NOTEBOOK_BASE}
