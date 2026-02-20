@@ -391,6 +391,7 @@ const NOTEBOOK_BASE = `# /// script
 #     "pandas",
 #     "matplotlib",
 #     "polars",
+#     "keyward @ https://aman0x.github.io/marimo-grist-widget/keyward-0.1.0-py3-none-any.whl",
 # ]
 # ///
 
