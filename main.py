@@ -70,5 +70,7 @@ if __name__ == "__main__":
 
     shutil.copyfile("grist.js", out_dir / "grist.js")
 
+    (out_dir / ".nojekyll").touch()
+
     print(f"{OKBLUE}Build complete !{ENDC}")
     print(f"Widget ready at {OKGREEN}{str(outfile)}{ENDC}")
