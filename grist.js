@@ -551,6 +551,21 @@ def get_actions_button(clear_after: bool = True):
     ctx = get_context()
     return ui.run_button(label=f"Apply {len(actions)} action(s) to Grist",
         on_change=lambda x: ctx.stream.write(kernel_msg))
+
+def apply_now(clear_after: bool = True):
+    from marimo._messaging.notification import UIElementMessageNotification
+    from marimo._messaging.serde import serialize_kernel_message
+    from marimo._runtime.context import get_context
+    actions = _get_pending_actions()
+    if len(actions) == 0:
+        return 0
+    if clear_after:
+        _clear_pending_actions()
+    msg = UIElementMessageNotification(ui_element="grist", model_id=None, message={"actions": actions})
+    kernel_msg = serialize_kernel_message(msg)
+    ctx = get_context()
+    ctx.stream.write(kernel_msg)
+    return len(actions)
 ''')
 
 # Write keyward api.py
@@ -563,7 +578,7 @@ from .table_operations import (
     create_table as _create_table, remove_table as _remove_table,
     add_column as _add_column, remove_column as _remove_column,
     replace_table_data as _replace_table_data, bulk_add_records as _bulk_add_records,
-    get_actions_button, set_table_name, get_table_name,
+    get_actions_button, apply_now as _apply_now, set_table_name, get_table_name,
     _get_pending_actions, _clear_pending_actions,
 )
 
@@ -629,6 +644,9 @@ class KeywardApi:
 
     def apply_button(self):
         return get_actions_button()
+
+    def apply_now(self):
+        return _apply_now()
 
     def query(self, filters: Optional[Dict[str, Any]] = None, columns: Optional[List[str]] = None, limit: Optional[int] = None) -> pd.DataFrame:
         df = get_dataframe()
