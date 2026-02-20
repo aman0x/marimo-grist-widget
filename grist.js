@@ -426,8 +426,7 @@ const NOTEBOOK_BASE = `# /// script
 #     "pandas",
 #     "matplotlib",
 #     "polars",
-#     "grist @ https://aman0x.github.io/marimo-grist-widget/grist-0.1.0-py3-none-any.whl",
-#     "keyward @ https://aman0x.github.io/marimo-grist-widget/keyward-0.6.7-py3-none-any.whl",
+#     "keyward @ https://aman0x.github.io/marimo-grist-widget/keyward-0.1.0-py3-none-any.whl",
 # ]
 # ///
 
@@ -649,22 +648,20 @@ async function injectKeywardPackage() {
     return;
   }
 
-  console.log("Installing grist and keyward packages via micropip...");
+  console.log("Installing keyward package via micropip...");
 
-  const gristWheelUrl = new URL("grist-0.1.0-py3-none-any.whl", window.location.href).href;
-  const keywardWheelUrl = new URL("keyward-0.6.7-py3-none-any.whl", window.location.href).href;
+  const keywardWheelUrl = new URL("keyward-0.1.0-py3-none-any.whl", window.location.href).href;
 
   await bridge.sendRun({
     cellIds: ["__keyward_install__"],
     codes: [`
 import micropip
-await micropip.install("${gristWheelUrl}")
 await micropip.install("${keywardWheelUrl}")
-print("✓ Grist and Keyward packages installed")
+print("✓ Keyward package installed")
 `],
   });
 
-  console.log("✓ Grist and Keyward packages installed successfully");
+  console.log("✓ Keyward package installed successfully");
 }
 
 // ============================================================================
