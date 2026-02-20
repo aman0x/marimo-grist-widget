@@ -746,10 +746,8 @@ window.addEventListener("hashchange", async function () {
 });
 
 async function init() {
-  const options = await grist.getOptions();
-  const savedCode = (options && options[GRIST_OPTION_KEY]) || null;
-
-  await initializeMarimo(savedCode);
+  // Always load fresh template (ignore saved code)
+  await initializeMarimo(null);
   console.log("Marimo-Grist widget initialized");
 }
 
