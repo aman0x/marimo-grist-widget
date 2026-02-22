@@ -260,13 +260,20 @@ def get_actions_button(clear_after: bool = True):
     )
 
 
+_last_applied_hash = None
 def apply_now(clear_after: bool = True):
+    global _last_applied_hash
+    import hashlib
     from marimo._messaging.notification import UIElementMessageNotification
     from marimo._messaging.serde import serialize_kernel_message
     from marimo._runtime.context import get_context
     actions = _get_pending_actions()
     if len(actions) == 0:
         return 0
+    actions_hash = hashlib.md5(str(actions).encode()).hexdigest()
+    if actions_hash == _last_applied_hash:
+        return 0
+    _last_applied_hash = actions_hash
     if clear_after:
         _clear_pending_actions()
     msg = UIElementMessageNotification(ui_element="grist", model_id=None, message={"actions": actions})
@@ -572,13 +579,20 @@ def get_actions_button(clear_after: bool = True):
     return ui.run_button(label=f"Apply {len(actions)} action(s) to Grist",
         on_change=lambda x: ctx.stream.write(kernel_msg))
 
+_last_applied_hash = None
 def apply_now(clear_after: bool = True):
+    global _last_applied_hash
+    import hashlib
     from marimo._messaging.notification import UIElementMessageNotification
     from marimo._messaging.serde import serialize_kernel_message
     from marimo._runtime.context import get_context
     actions = _get_pending_actions()
     if len(actions) == 0:
         return 0
+    actions_hash = hashlib.md5(str(actions).encode()).hexdigest()
+    if actions_hash == _last_applied_hash:
+        return 0
+    _last_applied_hash = actions_hash
     if clear_after:
         _clear_pending_actions()
     msg = UIElementMessageNotification(ui_element="grist", model_id=None, message={"actions": actions})
