@@ -1019,7 +1019,8 @@ for (const worker of pendingWorkers) {
 }
 pendingWorkers.length = 0;
 
-// Sync data when table updates
+// Sync data when table updates (debounced)
+let syncTimeout = null;
 grist.onRecords(async (records) => {
   const tableId = await grist.selectedTable.getTableId();
   if (!bridge) {
@@ -1027,7 +1028,13 @@ grist.onRecords(async (records) => {
     pendingRecords = { records, tableId };
     return;
   }
-  await syncGristData(records, tableId);
+  if (syncTimeout) {
+    clearTimeout(syncTimeout);
+  }
+  syncTimeout = setTimeout(async () => {
+    await syncGristData(records, tableId);
+    syncTimeout = null;
+  }, 500);
 });
 
 grist.onOptions(async (options, settings) => {
