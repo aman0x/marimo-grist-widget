@@ -880,7 +880,7 @@ async function initializeMarimo(savedCode) {
   // Sync any records that arrived before bridge was ready
   if (pendingRecords) {
     console.log("Syncing pending records from initial load...");
-    await syncGristData(pendingRecords);
+    await syncGristData(pendingRecords.records, pendingRecords.tableId);
     pendingRecords = null;
   }
 }
@@ -951,13 +951,13 @@ async function injectKeywardPackage() {
 // GRIST DATA SYNC
 // ============================================================================
 
-async function syncGristData(records) {
+async function syncGristData(records, tableId) {
   if (!bridge) {
     console.warn("Bridge not ready, skipping data sync");
     return;
   }
 
-  console.log("Syncing Grist data to marimo...");
+  console.log(`Syncing Grist data to marimo (table: ${tableId})...`);
 
   // Write data to pyodide filesystem
   await bridge.sendUpdateFile({
@@ -965,11 +965,18 @@ async function syncGristData(records) {
     contents: JSON.stringify(records),
   });
 
-  // Run setup cell to update GRIST_DATA_PATH
-  await bridge.sendRun({
-    cellIds: ["setup"],
-    codes: [SETUP_CODE],
-  });
+  // Write table name
+  if (tableId) {
+    await bridge.sendUpdateFile({
+      path: "table_name.txt",
+      contents: tableId,
+    });
+    // Update Python's current table name
+    await bridge.sendRun({
+      cellIds: ["set_table"],
+      codes: [`from keyward import api; api.table_name = "${tableId}"; print(f"Table: {api.table_name}")`],
+    });
+  }
 
   console.log("✓ Data synced successfully");
 }
@@ -994,12 +1001,13 @@ pendingWorkers.length = 0;
 
 // Sync data when table updates
 grist.onRecords(async (records) => {
+  const tableId = await grist.selectedTable.getTableId();
   if (!bridge) {
     console.log("Bridge not ready yet, storing records for later sync...");
-    pendingRecords = records;
+    pendingRecords = { records, tableId };
     return;
   }
-  await syncGristData(records);
+  await syncGristData(records, tableId);
 });
 
 grist.onOptions(async (options, settings) => {

@@ -21,54 +21,68 @@ The keyward package is embedded directly in `SETUP_CODE` within `grist.js`. When
 
 This ensures keyward is available before any user cells run.
 
-## Usage
-
-### Get Table Data
+## API Reference
 
 ```python
 from keyward import api
-df = api.get_table()
-df
 ```
 
-### Add Records
+### Table Management
 
 ```python
-from keyward import api
+api.table_name = "Table1"    # Set target table
+api.get_table()              # Get DataFrame of current table
+```
+
+### Single Record Operations
+
+```python
 api.add_record({"Name": "Test", "Value": 123})
-api.apply_button()  # Click the button to apply
+api.update_record(row_id, {"Name": "Updated"})
+api.delete_record(row_id)
 ```
 
-### Update Records
+### Multiple Records
 
 ```python
-from keyward import api
-api.update_record(1, {"Name": "Updated"})
-api.apply_button()
+api.add_records([{"Name": "A"}, {"Name": "B"}])
+api.update_records([{"id": 1, "Name": "X"}, {"id": 2, "Name": "Y"}])
+api.delete_records([1, 2, 3])
 ```
 
-### Delete Records
+### Bulk Operations (Single Action)
 
 ```python
-from keyward import api
-api.delete_record(1)
-api.apply_button()
+api.bulk_add_records([{"Name": "A"}, {"Name": "B"}, {"Name": "C"}])
 ```
 
-### Bulk Operations
+### Table Structure
 
 ```python
-from keyward import api
-records = [{"Name": "A"}, {"Name": "B"}, {"Name": "C"}]
-api.bulk_add_records(records)
-api.apply_button()
+api.create_table("NewTable", {"Name": "Text", "Value": "Numeric"})
+api.remove_table("TableName")
+api.add_column("col_id", "Text", "Label")
+api.remove_column("col_id")
 ```
 
-### Set Target Table
+### Query
 
 ```python
-from keyward import api
-api.table_name = "MyTable"
+api.query(filters={"Name": "Test"}, columns=["Name", "Value"], limit=10)
+```
+
+### Apply Actions
+
+```python
+api.apply_now()      # Auto-apply immediately (returns action count)
+api.apply_button()   # Returns a button to manually apply
+```
+
+### Pending Actions
+
+```python
+api.get_pending_actions()    # View queued actions
+api.clear_pending_actions()  # Clear without applying
 ```
 
 ## Key Files
@@ -87,9 +101,9 @@ api.table_name = "MyTable"
 
 2. **File-based data exchange**: Data flows through `data.json`, not direct API calls.
 
-3. **Action queue pattern**: Actions are queued in Python, then sent via a button click to Grist.
+3. **Auto-apply**: Use `api.apply_now()` to apply actions immediately without a button click.
 
-4. **Setup cell timing**: The setup cell must run before other cells to ensure keyward is available.
+4. **Fresh templates**: Widget always loads fresh templates on initialization.
 
 ## Deployment
 
